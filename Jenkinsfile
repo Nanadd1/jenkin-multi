@@ -1,20 +1,31 @@
-pipeline {
+ pipeline {
     agent any
     
     stages {
-        stage('Checkout') {
+        stage('Clean Workspace') {
+            steps {
+                cleanWs()  // Clean workspace before checkout
+            }
+        }
+        
+        stage('Force Checkout main') {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/main']],
+                    branches: [[name: 'refs/heads/main']],  // Absolute reference
                     extensions: [
-                        [$class: 'LocalBranch', localBranch: 'main']
+                        [$class: 'LocalBranch', localBranch: 'main'],
+                        [$class: 'CleanBeforeCheckout']
                     ],
-                    userRemoteConfigs: [[url: 'https://github.com/Nanadd1/jenkin-multi.git']]
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/Nanadd1/jenkin-multi.git',
+                        refspec: '+refs/heads/main:refs/remotes/origin/main'  // Force main
+                    ]]
                 ])
                 
-                // Debugging: Show what was checked out
+                // Debugging - show what was checked out
                 sh 'git branch -a'
+                sh 'git log -1'
                 sh 'ls -la src/main/java/com/example/'
             }
         }
@@ -37,4 +48,3 @@ pipeline {
         }
     }
 }
-            
